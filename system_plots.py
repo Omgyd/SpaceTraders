@@ -20,28 +20,6 @@ def get_systems(header):
         return request.json()['data']
     except:
         return request.json()['error']
-# data = {
-#     'X1-MS60':{
-#     "x": -10301,
-#     "y": -12030,
-#     },
-#     'X1-PV84':{
-#     "x": -9357,
-#     "y": -9924,
-#     }
-# }
-
-
-
-# for item in data:
-#     x = data[item]['x']
-#     y = data[item]['y']
-#     plt.scatter(x,y)
-#     label = item
-#     plt.annotate(label, (x,y), textcoords="offset points", ha='center')
-    
-
-# plt.show()
 
 def show_system():
     systems = get_systems(HEADERS)
@@ -55,8 +33,13 @@ def show_system():
 
     plt.show()
 
-systems = get_systems(HEADERS)
 
-for system in systems:
-    for body in system['waypoints']:
-        print(body)
+def print_system_info(header):
+    systems = get_systems(header)
+    for system in systems:
+        print('\n')
+        for body in system['waypoints']:
+            print(body)
+
+
+print_system_info(HEADERS)

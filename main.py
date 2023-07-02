@@ -33,7 +33,7 @@ def accept_contract(header, contract_id):
 def get_ship_info(header):
     ship = "RAVENOR-4"
     request = requests.get(f'https://api.spacetraders.io/v2/my/ships/', headers=header)
-    return request.json()['data'][3]
+    return request.json()['data']
 
 def get_systems(header):
     request = requests.get('https://api.spacetraders.io/v2/systems', headers=header)
@@ -109,6 +109,7 @@ def extract_ore(header):
         return request.json()['data']
     except:
         return request.json()
+                              
 
-for system in get_systems(HEADERS)['data']:
-    print(system)
+for ship in get_ship_info(HEADERS):
+    print(ship['registration'], ship['nav'], "\n")
