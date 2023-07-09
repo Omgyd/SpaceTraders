@@ -42,14 +42,14 @@ def accept_contract(header, contract_id):
     return request.json()
 
 
-def get_ship_info(header, ship_number):
-    request = requests.get(f"https://api.spacetraders.io/v2/my/ships/", headers=header)
-    return request.json()["data"][ship_number]
+# def get_ship_info(header, ship_number):
+#     request = requests.get(f"https://api.spacetraders.io/v2/my/ships/", headers=header)
+#     return request.json()["data"][ship_number]
 
 
-def all_ship_info(header):
-    request = requests.get(f"https://api.spacetraders.io/v2/my/ships/", headers=header)
-    return request.json()["data"]
+# def all_ship_info(header):
+#     request = requests.get(f"https://api.spacetraders.io/v2/my/ships/", headers=header)
+#     return request.json()["data"]
 
 
 def get_systems(header):

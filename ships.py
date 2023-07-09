@@ -1,0 +1,61 @@
+import requests
+from dotenv import load_dotenv
+from pprint import pprint
+import os
+
+load_dotenv()
+
+TOKEN = os.environ.get("TOKEN")
+HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {TOKEN}"}
+
+
+class Ship:
+    def __init__(self, header, ship_id):
+        self.header = header
+        self.ship_id = ship_id
+
+    def __repr__(self):
+        ship = self.get_ship_info()
+        ship_status = ship["nav"]["status"]
+        ship_symbol = ship["symbol"]
+        return (
+            f"Ship_ID: {self.ship_id}"
+            "\n"
+            f"Ship Symbol: {ship_symbol}"
+            "\n"
+            f"Status: {ship_status}"
+        )
+
+    def get_ship_info(self):
+        request = requests.get(
+            f"https://api.spacetraders.io/v2/my/ships/", headers=self.header
+        )
+        return request.json()["data"][self.ship_id]
+
+    def all_ship_info(self):
+        request = requests.get(
+            f"https://api.spacetraders.io/v2/my/ships/", headers=self.header
+        )
+        return request.json()["data"]
+
+    def dock_or_orbit(self):
+        ship = self.get_ship_info(self)
+        ship_status = ship["nav"]["status"]
+        ship_symbol = ship["symbol"]
+        if ship_status == "DOCKED":
+            request = requests.post(
+                f"https://api.spacetraders.io/v2/my/ships/{ship_symbol}/orbit",
+                headers=self.header,
+            )
+        if ship_status == "IN_ORBIT":
+            request = requests.post(
+                f"https://api.spacetraders.io/v2/my/ships/{ship_symbol}/dock",
+                headers=self.header,
+            )
+
+        return request.json()["data"]["nav"]["status"]
+
+
+ship = Ship(HEADERS, 0)
+
+pprint(ship)
