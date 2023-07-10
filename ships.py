@@ -55,6 +55,16 @@ class Ship:
 
         return request.json()["data"]["nav"]["status"]
 
+    def navigate_ship(self, waypoint):
+        ship = self.get_ship_info()["symbol"]
+        data = {"waypointSymbol": waypoint}
+        request = requests.post(
+            f"https://api.spacetraders.io/v2/my/ships/{ship}/navigate",
+            headers=self.header,
+            json=data,
+        )
+        return request.json()["data"]["nav"]
+
 
 ship = Ship(HEADERS, 0)
 
