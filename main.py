@@ -1,11 +1,12 @@
 import requests
 from time import sleep
 from dotenv import load_dotenv
+from mongodb import get_most_recent_token
 import os
 
 load_dotenv()
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = get_most_recent_token()
 HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {TOKEN}"}
 
 
