@@ -1,7 +1,7 @@
 import requests
 from time import sleep
 from dotenv import load_dotenv
-from mongodb import get_most_recent_token
+from mongodb import get_most_recent_token, insert_token
 import os
 
 load_dotenv()
@@ -10,17 +10,18 @@ TOKEN = get_most_recent_token()
 HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {TOKEN}"}
 
 
-def register():
+def register(name):
     header = {"Content-Type": "application/json"}
     payload = {
-        "symbol": "RAVENOR",
+        "symbol": name,
         "faction": "COSMIC",
     }
 
     request = requests.post(
         "https://api.spacetraders.io/v2/register", headers=header, json=payload
     )
-    return request.json()
+    token = request.json()['data']['token']
+    insert_token(token)
 
 
 def my_agent_info(header):
@@ -32,10 +33,11 @@ def view_contract(header):
     request = requests.get(
         "https://api.spacetraders.io/v2/my/contracts", headers=header
     )
-    return request.json()["data"]
+    return request.json()["data"][0]
 
 
-def accept_contract(header, contract_id):
+def accept_contract(header):
+    contract_id = view_contract(header)['id']
     request = requests.post(
         f"https://api.spacetraders.io/v2/my/contracts/{contract_id}/accept",
         headers=header,
@@ -88,16 +90,14 @@ def view_ships(header):
     request = requests.get(
         f"https://api.spacetraders.io/v2/systems/{system_symbol[0]}-{system_symbol[1]}/waypoints/{waypoint}/shipyard"
     )
-    return request.json()["data"]
+    return request.json()
 
 
-# shipyard = get_location(HEADERS)
-# for ship in shipyard['data']['ships']:
-#     print(ship)
 
+# waypoint = find_shipyard(HEADERS)
 # data = {
 #     "shipType": "SHIP_MINING_DRONE",
-#     "waypointSymbol": "X1-YU85-34607X"
+#     "waypointSymbol": waypoint
 # }
 
 # request = requests.post('https://api.spacetraders.io/v2/my/ships', headers=HEADERS, json=data)
@@ -105,10 +105,13 @@ def view_ships(header):
 # ships = get_ship_info(HEADERS)['data']
 # print(ships[3])
 
-# Find asteroid fileds in current system
-# for item in traits:
-#     if item['type'] == 'ASTEROID_FIELD':
-#         print(item['symbol'])
+def find_asteroid_field(header):
+    # Find asteroid fileds in current system
+    system = check_system(header)
+    for item in system:
+        for trait in item['traits']:
+            if item['type'] == 'ASTEROID_FIELD':
+                return item['symbol']
 
 
 def dock_or_orbit(header, ship_number):
@@ -129,19 +132,17 @@ def dock_or_orbit(header, ship_number):
     return request.json()["data"]["nav"]["status"]
 
 
-def navigate_ship(header):
-    ship = "RAVENOR-4"
-    data = {"waypointSymbol": "X1-YU85-76885D"}
+def navigate_ship(header, ship_number):
+    ship = get_ship_info(header, ship_number)['symbol']
+    asteroid_field = find_asteroid_field(header)
+    data = {"waypointSymbol": asteroid_field}
     request = requests.post(
         f"https://api.spacetraders.io/v2/my/ships/{ship}/navigate",
         headers=header,
         json=data,
     )
-    return request.json()["data"]["nav"]["status"]
+    return request.json()["data"]["nav"]
 
-
-# for item in get_ship_info(HEADERS)['data'][3]:
-#     print(item)
 
 
 def extract_ore(header, ship_number):
@@ -206,7 +207,7 @@ def sell_all_cargo(header, ship_number):
 
 
 def extract_all_ore():
-    ship = get_ship_info(HEADERS, 3)["cargo"]
+    ship = get_ship_info(HEADERS, 2)["cargo"]
     ship_capacity = ship["capacity"]
     ship_units = ship["units"]
     while ship_units != ship_capacity:
@@ -216,3 +217,4 @@ def extract_all_ore():
 def auto_mine(header, ship_number):
     credits = my_agent_info(header)
     print(credits)
+

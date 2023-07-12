@@ -24,5 +24,3 @@ def get_most_recent_token():
     collection = tokens.find({}).sort([("_id", pymongo.DESCENDING)]).limit(1)
     for item in collection:
         return item['token']
-    
-
