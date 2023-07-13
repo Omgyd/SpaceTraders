@@ -70,10 +70,6 @@ def check_system(header):
     return request.json()["data"]
 
 
-def check_waypoints(header):
-    request = requests.get(f"https://api.spacetraders.io/v2/systems/X1-YU85/waypoints")
-    return request.json()
-
 
 def find_shipyard(header):
     system = check_system(header)
@@ -218,3 +214,9 @@ def auto_mine(header, ship_number):
     credits = my_agent_info(header)
     print(credits)
 
+
+
+system = check_system(HEADERS)
+
+for waypoint in system:
+    print(waypoint['orbitals'])
