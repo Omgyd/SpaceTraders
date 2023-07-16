@@ -50,15 +50,6 @@ for planet, data in solar_system.items():
         ax.add_patch(circle)
         ax.annotate(planet, (x, y + radius * 2.5), color="white", ha="center", va="center")
 
-# Plot the Earth
-earth_data = solar_system["Earth"]
-earth_radius = earth_data["radius"]
-earth_x = earth_data["orbit_radius"] * np.cos(0)  # Start at angle 0 for x-coordinate
-earth_y = earth_data["orbit_radius"] * np.sin(0)  # Start at angle 0 for y-coordinate
-earth_color = earth_data["color"]
-circle = plt.Circle((earth_x, earth_y), earth_radius, color=earth_color)
-ax.add_patch(circle)
-ax.annotate("Earth", (earth_x, earth_y + earth_radius * 2.5), color="white", ha="center", va="center")
 
 # Plot the Moon
 moon_data = solar_system["Moon"]
