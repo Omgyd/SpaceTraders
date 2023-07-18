@@ -47,7 +47,10 @@ def accept_contract(header):
 
 def get_ship_info(header, ship_number):
     request = requests.get(f"https://api.spacetraders.io/v2/my/ships/", headers=header)
-    return request.json()["data"][ship_number]
+    try:
+        return request.json()["data"][ship_number]
+    except:
+        return request.json()
 
 
 def all_ship_info(header):
@@ -216,7 +219,8 @@ def auto_mine(header, ship_number):
 
 
 
-system = check_system(HEADERS)
+# system = check_system(HEADERS)
 
-for waypoint in system:
-    print(waypoint['orbitals'])
+# for waypoint in system:
+#     print(waypoint['orbitals'])
+
