@@ -2,6 +2,7 @@ import requests
 from time import sleep
 from dotenv import load_dotenv
 from mongodb import get_most_recent_token, insert_token
+from pprint import pprint
 import os
 
 load_dotenv()
@@ -33,7 +34,7 @@ def view_contract(header):
     request = requests.get(
         "https://api.spacetraders.io/v2/my/contracts", headers=header
     )
-    return request.json()["data"][0]
+    return request.json()
 
 
 def accept_contract(header):
@@ -91,18 +92,16 @@ def view_ships(header):
     )
     return request.json()
 
+def purchase_ship(header, ship_type):
+    waypoint = find_shipyard(HEADERS)
+    data = {
+        "shipType": ship_type,
+        "waypointSymbol": waypoint
+    }
 
+    request = requests.post('https://api.spacetraders.io/v2/my/ships', headers=header, json=data)
+    return request.json()
 
-# waypoint = find_shipyard(HEADERS)
-# data = {
-#     "shipType": "SHIP_MINING_DRONE",
-#     "waypointSymbol": waypoint
-# }
-
-# request = requests.post('https://api.spacetraders.io/v2/my/ships', headers=HEADERS, json=data)
-# print(request.json())
-# ships = get_ship_info(HEADERS)['data']
-# print(ships[3])
 
 def find_asteroid_field(header):
     # Find asteroid fileds in current system
@@ -131,7 +130,7 @@ def dock_or_orbit(header, ship_number):
     return request.json()["data"]["nav"]["status"]
 
 
-def navigate_ship(header, ship_number):
+def navigate_to_asteroid_field(header, ship_number):
     ship = get_ship_info(header, ship_number)['symbol']
     asteroid_field = find_asteroid_field(header)
     data = {"waypointSymbol": asteroid_field}
@@ -157,13 +156,10 @@ def extract_ore(header, ship_number):
             f"Yield: {info['extraction']['yield']['symbol']} - {info['extraction']['yield']['units']} Units"
         )
         print(f'Cooldown Time: {info["cooldown"]["totalSeconds"]}')
-        return info["cooldown"]["totalSeconds"]
+        return [info["cooldown"]["totalSeconds"], info['extraction']['yield']['units']]
     except:
-        return request.json()["error"]
-
-
-# for ship in get_ship_info(HEADERS):
-#     print(ship['registration'], "\n", ship['nav'], "\n")
+        print(request.json()['error']['message'])
+        return 0
 
 
 def get_market_data(header):
@@ -191,36 +187,60 @@ def get_ship_cargo(header, ship_number):
 
 
 def sell_all_cargo(header, ship_number):
+    credits = my_agent_info(header)['data']['credits']
     ship = get_ship_info(header, ship_number)
     ship_symbol = ship["symbol"]
-    for cargo in ship["cargo"]["inventory"]:
-        data = {}
-        data["symbol"] = cargo["symbol"]
-        data["units"] = cargo["units"]
-        request = requests.post(
-            f"https://api.spacetraders.io/v2/my/ships/{ship_symbol}/sell",
-            headers=header,
-            json=data,
-        )
-        print(request.json())
+    total_sale = 0
+    if ship['cargo']['units'] == 0:
+        return "No cargo to sell"
+    if ship['nav']['status'] == "IN_ORBIT":
+        dock_or_orbit(header, ship_number)
+    while ship['cargo']['units'] > 0:
+        for cargo in ship["cargo"]["inventory"]:
+            data = {}
+            data["symbol"] = cargo["symbol"]
+            data["units"] = cargo["units"]
+            request = requests.post(
+                f"https://api.spacetraders.io/v2/my/ships/{ship_symbol}/sell",
+                headers=header,
+                json=data,
+            )
+            sale = request.json()['data']['transaction']['totalPrice']
+            total_sale += sale
+        return (total_sale, credits)
 
 
-def extract_all_ore():
-    ship = get_ship_info(HEADERS, 2)["cargo"]
-    ship_capacity = ship["capacity"]
-    ship_units = ship["units"]
-    while ship_units != ship_capacity:
-        sleep(extract_ore(HEADERS, 3))
+def extract_all_ore(header, ship_id):
+    ship = get_ship_info(header, ship_id)
+    ship_status = ship['nav']['status']
+    ship_capacity = ship['cargo']["capacity"]
+    ship_units = ship['cargo']["units"]
+    if ship_units == ship_capacity:
+        return "Cargo Full"
+    if ship_status == "DOCKED":
+        dock_or_orbit(header, 2)
+    while ship_units < ship_capacity:
+        extraction_data = extract_ore(header, 2)
+        ship_units += extraction_data[1]
+        print(f'{ship_units}/{ship_capacity}')
+        if ship_units >= ship_capacity:
+            break
+        sleep(extraction_data[0])
+    print("Cargo Full")   
+
+
+
 
 
 def auto_mine(header, ship_number):
     credits = my_agent_info(header)
     print(credits)
 
+# get_ship_cargo(HEADERS, 2)
+# extract_all_ore(HEADERS, 2)
+# print(my_agent_info(HEADERS))
+# print(sell_all_cargo(HEADERS, 2))
 
 
-# system = check_system(HEADERS)
 
-# for waypoint in system:
-#     print(waypoint['orbitals'])
 
