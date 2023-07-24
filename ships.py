@@ -1,6 +1,7 @@
 import requests
 from dotenv import load_dotenv
 from pprint import pprint
+from datetime import datetime
 from mongodb import get_most_recent_token
 import os
 
@@ -66,6 +67,30 @@ class Ship:
         )
         return request.json()["data"]["nav"]
 
+    def get_ship_cooldown(self):
+        ship = self.get_ship_info()
+        ship_symbol = ship['symbol']
+        request = requests.get(f"https://api.spacetraders.io/v2/my/ships/{ship_symbol}/cooldown", headers=self.header)
+        try:
+            return request.json()
+        except:
+            return request
+    
+    def check_mounts(self):
+        ship = self.get_ship_info()
+        ship_symbol = ship['symbol']
+        request = requests.get(f"https://api.spacetraders.io/v2/my/ships/{ship_symbol}/mounts", headers=self.header)
+        return request.json()
+    
+    def get_flight_time(self):
+        ship = self.get_ship_info()
+        arrival = ship['nav']['route']['arrival']
+        departure = ship['nav']['route']['departureTime']
+        new_arrival = arrival.split(".")[0].replace("T", " ")
+        new_dept = departure.split(".")[0].replace("T", " ")
+        arrival_obj = datetime.strptime(new_arrival,'%Y-%m-%d %H:%M:%S')
+        dept_obj = datetime.strptime(new_dept, '%Y-%m-%d %H:%M:%S')
+        return arrival_obj - dept_obj
 
-ship = Ship(HEADERS, 0)
+ship = Ship(HEADERS, 2)
 
