@@ -64,6 +64,18 @@ def get_systems(header):
     request = requests.get("https://api.spacetraders.io/v2/systems", headers=header)
     return request.json()
 
+def scan_waypoints(header, ship_id):
+    ship = get_ship_info(header, ship_id)
+    ship_status = ship['nav']['status']
+    ship_symbol = ship['symbol']
+    if ship_status == "DOCKED":
+        dock_or_orbit(header, ship_id)
+    request = requests.post(f'https://api.spacetraders.io/v2/my/ships/{ship_symbol}/scan/waypoints', headers=header)
+    try:
+        return request.json()['data']
+    except:
+        return request.json()['error']
+
 
 def check_system(header):
     system = my_agent_info(header)
@@ -271,18 +283,15 @@ def extract_all_ore(header, ship_id):
     if ship_units == ship_capacity:
         return "Cargo Full"
     if ship_status == "DOCKED":
-        dock_or_orbit(header, 2)
+        dock_or_orbit(header, ship_id)
     while ship_units < ship_capacity:
-        extraction_data = extract_ore(header, 2)
+        extraction_data = extract_ore(header, ship_id)
         ship_units += extraction_data[1]
         print(f'{ship_units}/{ship_capacity}')
         # if ship_units >= ship_capacity:
         #     break
         sleep(extraction_data[0])
     print("Cargo Full")   
-
-
-
 
 
 def auto_mine(header, ship_number, target):
@@ -300,8 +309,9 @@ def auto_mine(header, ship_number, target):
 # print(my_agent_info(HEADERS))
 # print(sell_all_cargo(HEADERS, 2))
 # print(view_ships(HEADERS))
-# auto_mine(HEADERS, 2)
 
-ore_ship = Ship(HEADERS, 2)
 
-auto_mine(HEADERS, 2, 100000)
+ore_ship = Ship(HEADERS, 0)
+# pprint(navigate_to_asteroid_field(HEADERS, 0))
+auto_mine(HEADERS, 0, 130000)
+

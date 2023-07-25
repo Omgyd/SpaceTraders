@@ -91,6 +91,20 @@ class Ship:
         arrival_obj = datetime.strptime(new_arrival,'%Y-%m-%d %H:%M:%S')
         dept_obj = datetime.strptime(new_dept, '%Y-%m-%d %H:%M:%S')
         return arrival_obj - dept_obj
+    
+    def get_cooldown(self):
+        ship = self.get_ship_info()
+        ship_symbol = ship['symbol']
+        request = requests.get(f'https://api.spacetraders.io/v2/my/ships/{ship_symbol}/cooldown', headers=self.header)
+        if request.status_code == 204:
+            return 0
+        else:
+            return request.json()
+        
+    def create_survey(self):
+        ship_symbol = self.get_ship_info()['symbol']
+        request = requests.post(f"https://api.spacetraders.io/v2/my/ships/{ship_symbol}/survey", headers=self.header)
+        return request.json()
 
-ship = Ship(HEADERS, 2)
+ship = Ship(HEADERS, 0)
 
