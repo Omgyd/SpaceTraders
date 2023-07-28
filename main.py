@@ -101,7 +101,8 @@ def view_ships(header):
     waypoint = find_shipyard(header)
     system_symbol = waypoint.split("-")
     request = requests.get(
-        f"https://api.spacetraders.io/v2/systems/{system_symbol[0]}-{system_symbol[1]}/waypoints/{waypoint}/shipyard"
+        f"https://api.spacetraders.io/v2/systems/{system_symbol[0]}-{system_symbol[1]}/waypoints/{waypoint}/shipyard",
+        headers=header
     )
     return request.json()
 
@@ -227,14 +228,6 @@ def extract_ore(header, ship_number):
         return 0
 
 
-def get_market_data(header):
-    system_symbol = "X1-YU85"
-    waypoint = "X1-YU85-34607X"
-    request = requests.get(
-        f"https://api.spacetraders.io/v2/systems/{system_symbol}/waypoints/{waypoint}/market"
-    )
-    return request.json()["data"]
-
 
 def get_ship_cargo(header, ship_number):
     ship_symbol = get_ship_info(header, ship_number)["symbol"]
@@ -313,5 +306,6 @@ def auto_mine(header, ship_number, target):
 
 ore_ship = Ship(HEADERS, 0)
 # pprint(navigate_to_asteroid_field(HEADERS, 0))
-auto_mine(HEADERS, 0, 130000)
+# auto_mine(HEADERS, 0, 300000)
 
+print(sell_all_cargo(HEADERS, 0))
